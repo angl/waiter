@@ -1,4 +1,5 @@
 We have a real world demo of Waiter at https://youtu.be/62WCHLGV5eU!
+
 This project is covered by Techcrunch! https://techcrunch.com/2016/09/11/waiter-will-wait-on-hold-for-you-and-call-you-back-when-a-representative-answers/
 
 ## Inspiration
