@@ -22,7 +22,7 @@ def hello_monkey():
     # Greet the caller by name
     resp.say("Hello " + caller)
     # Play an mp3
-    resp.play("http://demo.twilio.com/hellomonkey/monkey.mp3", loop=0)
+    # resp.play("http://demo.twilio.com/hellomonkey/monkey.mp3", loop=0)
 
     # Gather digits.
     #with resp.gather(numDigits=1, action="/handle-key", method="POST") as g:
@@ -30,6 +30,19 @@ def hello_monkey():
     #             Press 2 to record your own monkey howl.
     #             Press any other key to start over.""")
 
+    # Gather phone number.
+    with resp.gather(numDigits=10, action="/handle-number", method="POST") as g:
+        g.say("""Please dail the number for customer service and we will 
+                 connect you with them.""")
+    return str(resp)
+
+@app.route("/handle-number", methods=['GET', 'POST'])
+def handle_number():
+    """Handle number typed by a user."""
+
+    number = request.values.get('Digits', None)
+    resp = twilio.twiml.Response()
+    resp.say("You just typed: " + number)
     return str(resp)
 
 @app.route("/handle-key", methods=['GET', 'POST'])
