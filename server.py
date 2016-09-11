@@ -10,16 +10,19 @@ authToken = "23dc8d06c0366efedd2e91e41c7bb06c"
 client = twilio.rest.TwilioRestClient(accountSid, authToken)
 
 # Customer number
-# customerNumber = "+19494392369"
+customerNumber = "+19494392369"
 
 # Host number
 hostNumber = "+14154293758"
 
 # Customer service number
-customerServiceNumber = "+17345481758"
+#customerServiceNumber = "+17345481758"
 
 # Robot number
 robotNumber = "+18582107986"
+
+# Debugger number
+debuggerNumber = "+17345481758"
 
 # Host URL (the URL hosting THIS service)
 hostUrl = "https://2c610ae9.ngrok.io"
@@ -50,29 +53,35 @@ def handle_host_entrance():
   customerCallSid = request.values.get('CallSid')
   userNumber = request.values.get('From', None)
 
+  # Connect debugger
+  client.calls.create(to=debuggerNumber, from_=hostNumber,
+                      url=hostUrl + "/host/%s/debugger" % customerNumber)
+
   # Get the customer service phone number.
+  resp = twilio.twiml.Response()
   with resp.gather(numDigits=10, action="/handle-customer-service-number",
                    method="POST") as g:
     g.say("""Please dail the number for customer service and we will 
                connect you with them.""")
+
   return str(resp)
 
 @app.route("/handle-customer-service-number", methods=['GET', 'POST'])
 def handle_customer_service_number():
   """Handle customer service number typed by a user."""
 
+  global customerServiceNumber
   customerServiceNumber = request.values.get('Digits', None)
   resp = twilio.twiml.Response()
-  resp.say("You just typed: " + number)
+  resp.say("You just typed: " + customerServiceNumber)
   # make the call to customer service
   call = client.calls.create(to=customerServiceNumber, from_=hostNumber,
-                             url=hostUrl + "/host/%s/customer_service" % userNumber)
+                             url=hostUrl + "/host/%s/customer_service" % customerNumber)
 
-  confName = "conf-%s" % userNumber
+  confName = "conf-%s" % customerNumber
   print "send user to conference %s" % confName
 
   resp = twilio.twiml.Response()
-  resp.say("Welcome")
   with resp.dial(method="POST") as d:
     d.conference(name=confName, muted=False, beep=False,
                  statusCallbackEvent="join leave", statusCallback="/host/conference",
@@ -123,6 +132,19 @@ def handle_host_call_customer(userNumber):
   resp.say("Your call has been answered. Transferring.")
   with resp.dial(method="POST") as d:
     d.conference(name=confName, muted=False, beep=False,
+                 statusCallbackEvent="join leave", statusCallback="/host/conference",
+                 statusCallbackMethod="POST")
+
+  return str(resp)
+
+@app.route("/host/<userNumber>/debugger", methods=['GET', 'POST'])
+def handle_host_call_debugger(userNumber):
+  confName = "conf-%s" % userNumber
+  print "send debugger to conference %s" % confName
+
+  resp = twilio.twiml.Response()
+  with resp.dial(method="POST") as d:
+    d.conference(name=confName, muted=True, beep=False,
                  statusCallbackEvent="join leave", statusCallback="/host/conference",
                  statusCallbackMethod="POST")
 
@@ -182,12 +204,12 @@ def handle_robot_record():
                     break
             if triggered:
                 resp.say("I'm a voice assistant robot. Please hold on for a few seconds while I wake up my master.")
-                client.calls.create(to=customerServiceNumber, from_=userNumber,
-                                    url=hostUrl + "/host/%s/customer" % userNumber)
+                client.calls.create(to=user_number, from_=hostNumber,
+                                    url=hostUrl + "/host/%s/customer" % user_number)
                 return str(resp)
 
     resp.say("Hello? Can you hear me?")
-    resp.record(maxLength="2", action="/robot")
+    resp.record(maxLength="2", action="/robot", playBeep=False)
     return str(resp)
 
 @app.route("/message", methods=['GET', 'POST'])

@@ -62,7 +62,7 @@ def handle_key():
     elif digit_pressed == "2":
         resp = twilio.twiml.Response()
         resp.say("Record your monkey howl after the tone.")
-        resp.record(maxLength="30", action="/handle-recording")
+        resp.record(maxLength="30", playBeep=False, action="/handle-recording")
         return str(resp)
 
     # If the caller pressed anything but 1, redirect them to the homepage.
