@@ -69,12 +69,14 @@ def handle_recording():
     else:
         recording_url = request.values.get("RecordingUrl", None)
         if recording_url:
+            print recording_url
             resp.say("Thanks for howling... take a listen to what you howled.")
             resp.play(recording_url)
             resp.say("Recording ends.")
         resp.say("Hello? Can you hear me?")
-        resp.record(maxLength="3", action="/handle-recording",
-                transcribe="true", transcribeCallback="/handle-transcription")
+        # resp.record(maxLength="3", action="/handle-recording",
+        #         transcribe="true", transcribeCallback="/handle-transcription")
+        resp.record(maxLength="3", action="/handle-recording")
     return str(resp)
 
 @app.route("/handle-transcription", methods=['GET', 'POST'])
