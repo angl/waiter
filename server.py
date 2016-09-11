@@ -16,7 +16,7 @@ customerNumber = "+19494392369"
 hostNumber = "+14154293758"
 
 # Customer service number
-customerServiceNumber = "+14156568213"
+customerServiceNumber = "+17345481758"
 
 # Robot number
 robotNumber = "+18582107986"
@@ -35,6 +35,13 @@ customerServiceCallSid = None
 
 # customer call SID (in conference)
 customerCallSid = None
+
+triggerWords = [
+    "yes",
+    "hello",
+    "how are you",
+    "hear you"
+    ]
 
 @app.route("/host", methods=['GET', 'POST'])
 def handle_host_entrance():
@@ -91,6 +98,22 @@ def handle_host_call_robot(userNumber):
 
   return str(resp)
 
+@app.route("/host/<userNumber>/customer", methods=['GET', 'POST'])
+def handle_host_call_customer(userNumber):
+  global customerCallSid
+  customerCallSid = None
+  confName = "conf-%s" % userNumber
+  print "send customer to conference %s" % confName
+
+  resp = twilio.twiml.Response()
+  resp.say("Your call has been answered. Transferring.")
+  with resp.dial(method="POST") as d:
+    d.conference(name=confName, muted=False, beep=False,
+                 statusCallbackEvent="join leave", statusCallback="/host/conference",
+                 statusCallbackMethod="POST")
+
+  return str(resp)
+
 @app.route("/host/conference", methods=['GET', 'POST'])
 def handle_conference():
   global robotCallSid
@@ -108,7 +131,7 @@ def handle_conference():
 
       # send a message to customer
       client.messages.create(to=userNumber, from_=hostNumber,
-                             body="Your voice assistant is still waiting on the call. Reply anything to make it stop")
+                             body="Waiter is still waiting on the call. Reply anything to make it stop.")
 
   return ""
 
@@ -137,10 +160,17 @@ def handle_robot_record():
         print recording_url
         transcript = recognize_speech(recording_url)
         print transcript
-        if transcript and ('yes' in transcript.lower()):
-            resp.say("I'm the voice assistant robot for Ang Li. Please hold on for a few seconds while I wake up my master.")
-            resp.dial(user_number)
-            return str(resp)
+        if transcript:
+            triggered = False
+            for word in triggerWords:
+                if word in transcript.lower():
+                    triggered = True
+                    break
+            if triggered:
+                resp.say("I'm a voice assistant robot. Please hold on for a few seconds while I wake up my master.")
+                client.calls.create(to=customerServiceNumber, from_=userNumber,
+                                    url=hostUrl + "/host/%s/customer" % userNumber)
+                return str(resp)
 
     resp.say("Hello? Can you hear me?")
     resp.record(maxLength="2", action="/robot")
