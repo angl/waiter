@@ -10,7 +10,7 @@ authToken = "23dc8d06c0366efedd2e91e41c7bb06c"
 client = twilio.rest.TwilioRestClient(accountSid, authToken)
 
 # Customer number
-customerNumber = "+19494392369"
+# customerNumber = "+19494392369"
 
 # Host number
 hostNumber = "+14154293758"
@@ -43,6 +43,20 @@ def handle_host_entrance():
   customerCallSid = request.values.get('CallSid')
   userNumber = request.values.get('From', None)
 
+  # Get the customer service phone number.
+  with resp.gather(numDigits=10, action="/handle-customer-service-number",
+                   method="POST") as g:
+    g.say("""Please dail the number for customer service and we will 
+               connect you with them.""")
+  return str(resp)
+
+@app.route("/handle-customer-service-number", methods=['GET', 'POST'])
+def handle_customer_service_number():
+  """Handle customer service number typed by a user."""
+
+  customerServiceNumber = request.values.get('Digits', None)
+  resp = twilio.twiml.Response()
+  resp.say("You just typed: " + number)
   # make the call to customer service
   call = client.calls.create(to=customerServiceNumber, from_=hostNumber,
                              url=hostUrl + "/host/%s/customer_service" % userNumber)
