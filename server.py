@@ -40,7 +40,6 @@ customerServiceCallSid = None
 customerCallSid = None
 
 triggerWords = [
-    "yes",
     "hello",
     "how are you",
     "hear you"
