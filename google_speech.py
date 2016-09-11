@@ -5,6 +5,7 @@ import requests
 import json
 
 GOOGLE_AUTH_TOKEN = None
+SPEECH_API = "https://speech.googleapis.com/v1beta1/speech:syncrecognize"
 
 def get_google_auth_token():
   global GOOGLE_AUTH_TOKEN
@@ -14,6 +15,7 @@ def get_google_auth_token():
     GOOGLE_AUTH_TOKEN = GOOGLE_AUTH_TOKEN.strip("\n")
   return GOOGLE_AUTH_TOKEN
 
+# Returns recognized transcript as a string. Returns false if that failed.
 def recognize_speech(url):
   retry = True
   while retry:
@@ -48,20 +50,16 @@ def recognize_speech(url):
       "Authorization":"Bearer %s" % get_google_auth_token()
       }
 
-  url = "https://speech.googleapis.com/v1beta1/speech:syncrecognize"
+  r = requests.post(SPEECH_API, data=json.dumps(body), headers=headers)
 
-  r = requests.post(url, data=json.dumps(body), headers=headers)
-
-  transcript = None
+  transcripts = []
   if r.status_code == 200:
     j = r.json()
     if "results" in j:
-      if len( j["results"] ) > 0:
-        result = j["results"][0]
+      for result in j["results"]:
         if "alternatives" in result:
-          if len( result["alternatives"] ) > 0:
-            alternative = result["alternatives"][0]
+          for alternative in result["alternatives"]:
             if "transcript" in alternative:
-              transcript = alternative["transcript"]
+              transcripts.append(alternative["transcript"])
 
-  return transcript
+  return " ".join(transcripts)
