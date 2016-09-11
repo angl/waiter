@@ -22,13 +22,13 @@ def hello_monkey():
     # Greet the caller by name
     resp.say("Hello " + caller)
     # Play an mp3
-    resp.play("http://demo.twilio.com/hellomonkey/monkey.mp3")
+    resp.play("http://demo.twilio.com/hellomonkey/monkey.mp3", loop=0)
 
     # Gather digits.
-    with resp.gather(numDigits=1, action="/handle-key", method="POST") as g:
-        g.say("""To speak to a real monkey, press 1. 
-                 Press 2 to record your own monkey howl.
-                 Press any other key to start over.""")
+    #with resp.gather(numDigits=1, action="/handle-key", method="POST") as g:
+    #    g.say("""To speak to a real monkey, press 1. 
+    #             Press 2 to record your own monkey howl.
+    #             Press any other key to start over.""")
 
     return str(resp)
 
