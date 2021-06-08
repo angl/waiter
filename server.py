@@ -5,8 +5,8 @@ from google_speech import recognize_speech
 
 app = Flask(__name__)
 
-accountSid = "AC2e34224eaf5338f905e20b3971137eed"
-authToken = "23dc8d06c0366efedd2e91e41c7bb06c"
+accountSid = ""
+authToken = ""
 client = twilio.rest.TwilioRestClient(accountSid, authToken)
 
 # Customer number
